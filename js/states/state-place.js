@@ -154,7 +154,7 @@ StatePlace.prototype.PlaceRoad = function(thing) {
 }
 
 StatePlace.prototype.placeFirstRoad = function(edge) {
-  if (this.board.buildRoad(edge, "red"), true) {
+  if (this.board.buildRoad(edge, "red",true), true) {
     Banner("Place your second Settlement.");
   } else {
     Banner("Road can't be placed here.");
@@ -163,7 +163,6 @@ StatePlace.prototype.placeFirstRoad = function(edge) {
 
 StatePlace.prototype.placeSecondRoad = function(edge) {
   this.board.buildRoad(edge, "red", true);
-
   Banner("Roll away!!");
 }
 

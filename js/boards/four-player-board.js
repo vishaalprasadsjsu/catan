@@ -48,5 +48,40 @@ FourPlayerBoard.prototype.init = function(tilespace) {
   return this;
 }
 
+FourPlayerBoard.prototype.placePorts = function() {
+  // the minimum number of edges between each port.
+  var portSpace = Math.floor(this.tilespace.coastalEdges.length / this.NUMBER_OF_PORTS);
+
+  // a random offset that shifts where ports are placed in the sequence.
+  // this prevents ports from always appearing in the same place.
+  var offset = _.sample([1,2]);
+
+  // keep track of how many ports have been placed already.
+  var ports = 0;
+
+  // guarantee there are is at least one special port for each resource
+  var portTypes = [BRICK, WHEAT, ORE, SHEEP, WOOD];
+
+  // fill the remaining port slots with basic default 3:1 ports
+  while (portTypes.length < this.NUMBER_OF_PORTS) {
+    portTypes.push({name: "default", color: "#444", ratio: 3});
+  }
+
+  portTypes = _.shuffle(portTypes);
+
+  for (var i = 0; i < this.tilespace.coastalEdges.length; i++) {
+    if (i % portSpace === offset && ports < this.NUMBER_OF_PORTS) {
+      var edge = this.tilespace.coastalEdges[i];
+      edge.isPort = true;
+      edge.port = portTypes.pop();
+      ports++;
+
+      this.ports[edge.c1.key()] = edge.port;
+      this.ports[edge.c2.key()] = edge.port;
+    }
+  }
+};
+
+FourPlayerBoard.prototype.NUMBER_OF_PORTS = 9;
 FourPlayerBoard.TOKEN_ARRANGEMENT = [5, 2, 6, 3, 8, 10, 9, 12, 11, 4, 8, 10, 9, 4, 5, 6, 3, 11];
 FourPlayerBoard.RELATIVE_TILE_ARRANGEMENT = [{"x":-150,"y":-86},{"x":-75,"y":-129},{"x":0,"y":-172},{"x":75,"y":-129},{"x":150,"y":-86},{"x":150,"y":0},{"x":150,"y":86},{"x":75,"y":129},{"x":0,"y":172},{"x":-75,"y":129},{"x":-150,"y":86},{"x":-150,"y":0},{"x":-75,"y":-43},{"x":0,"y":-86},{"x":75,"y":-43},{"x":75,"y":43},{"x":0,"y":86},{"x":-75,"y":43},{"x":0,"y":0}];

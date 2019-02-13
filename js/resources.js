@@ -60,7 +60,7 @@ function initResources(players) {
   // initialize resources for each player
   _.each(players, function(player) {
     _.each(ALL_RESOURCES, function(resource) {
-      RESOURCES[player][resource.name] = 0;
+      RESOURCES[player][resource.name] = 10;
     });
   });
 

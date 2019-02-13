@@ -42,6 +42,9 @@ function Edge(c1, c2) {
     return edges;
   }
 }
+Edge.prototype.getCorners = function() {
+  return [this.c1,this.c2];
+}
 
 Edge.prototype.key = function() {
   var key = [this.x, this.y].join(",");

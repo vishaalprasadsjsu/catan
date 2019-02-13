@@ -79,28 +79,6 @@ FullscreenBoard.prototype.getThing = function(x1, y1) {
   return closest;
 };
 
-FullscreenBoard.prototype.canPlaceSettlement = function(cornerKey) {
-  return !this.isCornerOccupied(cornerKey) &&
-         this.isTwoAway(cornerKey);
-};
-
-FullscreenBoard.prototype.isCornerOccupied = function(cornerKey) {
-  return this.settlements[cornerKey] || this.cities[cornerKey];
-};
-
-FullscreenBoard.prototype.isTwoAway = function(cornerKey) {
-  // assume it is two away from anything, until proven guilty.
-  var result = true;
-
-  var neighbors = this.cornerGraph[cornerKey];
-  _.each(neighbors, function(neighbor) {
-    if (this.isCornerOccupied(neighbor.key())) {
-      result = false;
-    }
-  }, this);
-
-  return result;
-};
 
 FullscreenBoard.prototype.longestRoad = function() {
   var bestChain = [];
@@ -190,50 +168,145 @@ FullscreenBoard.prototype.countRoadByCorner = function(corner, currentPlayer, vi
   return bestChain;
 };
 
-FullscreenBoard.prototype.buildRoad = function(edge, player, free) {
-  if (!free) {
-    Resources.buyRoad(player);
+FullscreenBoard.prototype.canBuildRoad = function(edge,player,initial) {
+  scores = this.game.scores.getScores();
+  if ((!Resources.canBuyRoad(player)) && (!initial)) {
+    console.log(initial);
+    console.log("FUCK");
+    Banner("Can't afford a Road!");
+    return false;
   }
-
-  var key = edge.key();
-  var road = new Road(edge, player);
-  this.roads[key] = road;
-
-  draw();
-};
-
-FullscreenBoard.prototype.buildSettlement = function(corner, player, free) {
-  var key = corner.key();
-  if (this.settlements[key] instanceof City) {
-    return;
+  corners = edge.getCorners();
+  neighbors = edge.getNeighborEdges(this);
+  roads = this.getRoads();
+  if (edge.key() in roads) {
+    Banner("Edge Occupied!");
+    return false
   }
-
-  if (!free && !Resources.buySettlement(player)) {
-    Banner("Can't afford Settlement.");
-  } else {
-    var settlement = new Settlement(corner, player);
-    this.settlements[key] = settlement;
-  }
-
-  // update available trade ratios if a player settles on a port.
-  var port = this.ports[key];
-  if (port) {
-    if (port.name === "default") {
-      this.game.trade.setPortTradeRatio(player);
-    } else {
-      this.game.trade.setSpecificResourceTradeRatio(port.name, player);
+  for (var i = 0; i < corners.length; i++) {
+    if ((corners[i].key() in this.settlements) && (this.settlements[corners[i].key()].getPlayer() === player)) {
+      return true;
     }
   }
+  for (var i = 0; i < neighbors.length; i++) {
+      if ((neighbors[i].key() in roads) && (roads[neighbors[i].key()].getPlayer() === player)) {
+        return true;
+      }
+  }
+  if ((initial)) {
+    return true;
+  }
+  Banner("No Connecting Road!");
+  return false;
+};
 
-  draw();
+FullscreenBoard.prototype.buildRoad = function(edge, player,initial) {
+  console.log("first",initial);
+  if (this.canBuildRoad(edge,player,initial) === true) {
+    Resources.buyRoad(player);
+    var key = edge.key();
+    var road = new Road(edge, player);
+    this.roads[key] = road;
+    draw();
+  }
+};
 
-  return settlement;
+FullscreenBoard.prototype.canPlaceSettlement = function(cornerKey) {
+  return !this.isCornerOccupied(cornerKey) &&
+         this.isTwoAway(cornerKey);
+};
+
+FullscreenBoard.prototype.isCornerOccupied = function(cornerKey) {
+  return this.settlements[cornerKey] || this.cities[cornerKey];
+};
+
+FullscreenBoard.prototype.isTwoAway = function(cornerKey) {
+  // assume it is two away from anything, until proven guilty.
+  var result = true;
+
+  var neighbors = this.cornerGraph[cornerKey];
+  _.each(neighbors, function(neighbor) {
+    if (this.isCornerOccupied(neighbor.key())) {
+      result = false;
+    }
+  }, this);
+
+  return result;
+};
+
+FullscreenBoard.prototype.isConnected = function(cornerKey,player) {
+  edges = this.cornerToEdges[cornerKey];
+  for(var i = 0; i < edges.length; i++) {
+    if (edges[i].key() in this.roads) {
+      road = this.roads[edges[i].key()]
+      if(road.getPlayer() == player) {
+        return true;
+      }
+    }
+  }
+  Banner("No connecting road!");
+  return false;
+}
+
+
+FullscreenBoard.prototype.canBuildSettlement = function(corner,player,initial) {
+  var key = corner.key();
+  // checks if player already owns a settlement, if so check if can upgrade to city
+  if ((key in this.settlements) && (this.settlements[key].getPlayer() === player) && !initial) {
+    if (!(this.settlements[key] instanceof City)) {
+      this.buildCity(corner,player);
+      return false;
+    }
+    Banner("Already a city!");
+    return false;
+  }
+  // checks if not initial set up and if player has resources
+  if (!Resources.canBuySettlement(player) && (!initial)) {
+    Banner("Can't afford Settlement.");
+    return false;
+  }
+  // checks if the spot is occupied or if the spot it too close to another settlement.
+  if(!this.isCornerOccupied(key)) {
+    if(this.isTwoAway(key) === false) {
+      Banner("Corner not two away from settlement!");
+      return false;
+    }
+    if (!initial) {
+      return (this.isConnected(key,player));
+    }
+    return true;
+  }
+  Banner("Settlement already there!");
+  return false;
+}
+
+FullscreenBoard.prototype.buildSettlement = function(corner, player,initial) {
+  if(this.canBuildSettlement(corner,player,initial) === true) {
+    Resources.buySettlement(player);
+    var key = corner.key();
+    var settlement = new Settlement(corner, player);
+    this.settlements[key] = settlement;
+    // update available trade ratios if a player settles on a port.
+    var port = this.ports[key];
+    if (port) {
+      if (port.name === "default") {
+        this.game.trade.setPortTradeRatio(player);
+      } else {
+        this.game.trade.setSpecificResourceTradeRatio(port.name, player);
+      }
+    }
+    draw();
+    return settlement;
+  }
+  return null;
 };
 
 FullscreenBoard.prototype.buildCity = function(corner, player) {
   var key = corner.key();
   if (!Resources.buyCity(player)) {
+    console.log("HUH");
     Banner("Can't afford City.");
+    return;
   } else {
     // remove old settlement
     delete this.settlements[key];
@@ -245,3 +318,26 @@ FullscreenBoard.prototype.buildCity = function(corner, player) {
 
   draw();
 };
+
+FullscreenBoard.prototype.getCornerToEdges = function() {
+  return this.cornerToEdges;
+}
+
+FullscreenBoard.prototype.getRoads = function() {
+  return this.roads;
+}
+FullscreenBoard.prototype.getSettlements = function() {
+  return this.settlements;
+}
+
+FullscreenBoard.prototype.getCities = function() {
+  return this.cities;
+}
+
+FullscreenBoard.prototype.getPorts = function() {
+  return this.ports;
+}
+
+FullscreenBoard.prototype.getCornerGraph = function() {
+  return this.cornerGraph;
+}

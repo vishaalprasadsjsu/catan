@@ -11,6 +11,10 @@ function Scores(game) {
   this.currentLongestRoad = undefined;
 }
 
+Scores.prototype.getScores = function() {
+  return this.scores;
+}
+
 Scores.prototype.update = function() {
   _.each(this.game.players, function(player) {
     this.scores[player] = 0;
