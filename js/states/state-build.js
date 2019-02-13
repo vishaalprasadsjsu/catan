@@ -9,20 +9,10 @@ function StateBuild(game) {
 StateBuild.prototype.execute = function(thing) {
   var player = this.game.currentPlayer;
   if (thing instanceof Corner) {
-    // console.log("Corner",thing.key(),this.board.getCornerToEdges());
     var corner = thing;
     var key = corner.key();
     console.log(this.board.getCornerToEdges()[corner.key()]);
     this.board.buildSettlement(corner,player);
-    // upgrade settlements to cities
-    // if (this.board.settlements[key]) {
-    //   var settlement = this.board.settlements[key]
-    //   if (settlement.getPlayer() == player) {
-    //       this.board.buildCity(corner, player);
-    //   }
-    // } else {
-    //   this.board.buildSettlement(corner, player);
-    // }
   } 
   else if (thing instanceof Edge) {
     console.log(thing)
@@ -44,30 +34,6 @@ StateBuild.prototype.execute = function(thing) {
   }
 }
 
-
-// StateBuild.prototype.canbuildSettlement = function(corner,player) {
-//   if (!Resources.buySettlement(player)) {
-//     Banner("Can't afford a Settlement!");
-//     return false;
-//   }
-//   if (settlements[key] instanceof City) {
-//     Banner("Already a city!");
-//     return false;
-//   }
-//   cornerKey = corner.key()
-//   settlements = this.board.getSettlements();
-//   var canBuy = false
-//   if ((this.board.isCornerOccupied === false) && (this.board.isTwoAway(cornerKey))) {
-//       canBuy = true;
-//   }
-//   return false
-
-// };
-
-// FullscreenBoard.prototype.canPlaceSettlement = function(cornerKey) {
-//   return !this.board.isCornerOccupied(cornerKey) &&
-//          this.board.isTwoAway(cornerKey);
-// };
 
 StateBuild.prototype.shouldGhostRoad = function(edge) {
   var result = false;

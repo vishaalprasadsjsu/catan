@@ -36,6 +36,33 @@ FullscreenBoard.prototype.registerTileSpace = function(tilespace) {
   this.everything = tilespace.everything;
 }
 
+FullscreenBoard.prototype.getCornerToEdges = function() {
+  return this.cornerToEdges;
+}
+
+FullscreenBoard.prototype.getRoads = function() {
+  return this.roads;
+}
+FullscreenBoard.prototype.getSettlements = function() {
+  return this.settlements;
+}
+
+FullscreenBoard.prototype.getCities = function() {
+  return this.cities;
+}
+
+FullscreenBoard.prototype.getPorts = function() {
+  return this.ports;
+}
+
+FullscreenBoard.prototype.getCornerGraph = function() {
+  return this.cornerGraph;
+}
+
+FullscreenBoard.prototype.getRobber = function() {
+  return this.robber;
+}
+
 FullscreenBoard.prototype.placeRobber = function() {
   var deserts = _.filter(this.tiles, function(tile) {
     return tile.resource === DESERT;
@@ -319,25 +346,3 @@ FullscreenBoard.prototype.buildCity = function(corner, player) {
   draw();
 };
 
-FullscreenBoard.prototype.getCornerToEdges = function() {
-  return this.cornerToEdges;
-}
-
-FullscreenBoard.prototype.getRoads = function() {
-  return this.roads;
-}
-FullscreenBoard.prototype.getSettlements = function() {
-  return this.settlements;
-}
-
-FullscreenBoard.prototype.getCities = function() {
-  return this.cities;
-}
-
-FullscreenBoard.prototype.getPorts = function() {
-  return this.ports;
-}
-
-FullscreenBoard.prototype.getCornerGraph = function() {
-  return this.cornerGraph;
-}
